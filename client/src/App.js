@@ -41,9 +41,10 @@ class App extends Component {
 
     const voteYes = await contract.voteYes();
     const voteNo = await contract.voteNo();
+    const hash = await contract.hash_value();
 
     // Update state with the result.
-    this.setState({ voteYes : voteYes.toNumber(), voteNo : voteNo.toNumber() });
+    this.setState({ voteYes : voteYes.toNumber(), voteNo : voteNo.toNumber(), hash : hash });
   };
 
   vote = (voted) =>
@@ -51,6 +52,7 @@ class App extends Component {
     console.log("vote:" + voted );
     const {accounts, contract} = this.state;
     contract.vote(voted, {"from":accounts[0]});
+    contract.saveHash("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", {"from" : accounts[0]});
   };
 
 
@@ -63,6 +65,7 @@ class App extends Component {
         <h1>Vote app</h1>
         <div>Vote yes: {this.state.voteYes}</div>
         <div>Vote no: {this.state.voteNo}</div>
+        <div>Hash: {this.state.hash}</div>
 
         <button onClick={() => {this.vote(true)}}>Vote Yes</button>
         <button onClick={() => {this.vote(false)}}>Vote No</button>
