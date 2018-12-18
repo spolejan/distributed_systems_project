@@ -1,3 +1,36 @@
 .App {
   text-align: center;
+  background-color:whitesmoke;
 }
+body{
+  background-color:rgb(204, 242, 255);
+}
+table, th, td {
+  padding: 5px;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+button{
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+width: 150px;
+padding: 10px;
+}
+.red{background-color: red}
+.green{background-color: green}
+.hidden { display:none; }
+.bordered {text-align: center;
+  padding: 10px;
+  border:2px solid black;
+  margin: auto;
+}
+  .formBordered {text-align: center;
+    padding: 10px;
+    border:2px solid black;
+    width: 250px;
+    
+  }
+  .buttons {text-align: center;
+    padding: 10px;
+    border:2px solid black;
+    align-content: left;
+  }

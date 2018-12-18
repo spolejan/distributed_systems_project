@@ -1,5 +1,6 @@
 const fs = require('fs');
 const readline = require('readline');
+
 const { google } = require('googleapis');
 
 // If modifying these scopes, delete token.json.
@@ -9,12 +10,7 @@ const SCOPES = ["https://mail.google.com/"];
 // time.
 const TOKEN_PATH = 'token.json';
 
-// Load client secrets from a local file.
-var credentials = fs.readFileSync('credentials.json', (err, content) => {
-    // Authorize a client with credentials, then call the Gmail API. 
-});
-//authorize(JSON.parse(credentials), function(auth){sendEmail(auth, "mr851837@gmail.com", "mr851837@gmail.com", "Test message, anothr test message", "Test1");});
-authorize(JSON.parse(credentials), listEmail);
+
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -31,7 +27,7 @@ function authorize(credentials, callback) {
     fs.readFile(TOKEN_PATH, (err, token) => {
         if (err) return getNewToken(oAuth2Client, callback);
         oAuth2Client.setCredentials(JSON.parse(token));
-        callback(oAuth2Client);
+        return callback(oAuth2Client);
     });
 }
 
@@ -61,11 +57,10 @@ function getNewToken(oAuth2Client, callback) {
                 if (err) return console.error(err);
                 console.log('Token stored to', TOKEN_PATH);
             });
-            callback(oAuth2Client);
+            return callback(oAuth2Client);
         });
     });
 }
-
 
 /**
  * Lists the labels in the user's account.
@@ -75,23 +70,44 @@ function getNewToken(oAuth2Client, callback) {
 async function listEmail(auth) {
     const gmail = google.gmail({ version: 'v1', auth });
     var res = await gmail.users.messages.list({ userId: 'me' });
-    console.log(res.data);
+    //console.log(res.data);
+    var emails_data = [];
     //for cycle over returned messages, each message has dictionary with id in it
-    for(var i = 0; i < res.data.messages.length; i++)
-    {   //here we request for each message from the list of messages and get the message itself
-        console.log(await gmail.users.messages.get({ userId: 'me', id: res.data.messages[i]["id"] }));
+    for (var i = 0; i < res.data.messages.length; i++) {   //here we request for each message from the list of messages and get the message itself
+        emails_data.push(await gmail.users.messages.get({ userId: 'me', id: res.data.messages[i]["id"] }));
     }
+    var emails = [];
+    emails_data.forEach(email => {
+        var data = {};
+        data["date"] = email["headers"]["date"];
+        for (var i = 0; i < email["data"]["payload"]["headers"].length; i++) {
+
+            if (email["data"]["payload"]["headers"][i]["name"] === "From") {
+                data["From"] = email["data"]["payload"]["headers"][i]["value"];
+            }
+            if (email["data"]["payload"]["headers"][i]["name"] === "To") {
+                data["To"] = email["data"]["payload"]["headers"][i]["value"];
+            }
+            if (email["data"]["payload"]["headers"][i]["name"] === "Subject") {
+                data["Subject"] = email["data"]["payload"]["headers"][i]["value"];
+            }
+        }
+        data["message"] = email["data"]["snippet"];
+        emails.push(data);
+
+    });
+    return emails;
 }
 //auth is object containing the login to google api
-async function sendEmail(auth, from, to, message_in, subject) {
+async function sendEmailInsideFun(auth, from, to, message_in, subject) {
     // You can use UTF-8 encoding for the subject using the method below.
     // You can also just use a plain string if you don't need anything fancy.
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
     //var from = "mr851837@gmail.com";
     //var to = "mr851837@gmail.com";
     const messageParts = [
-        'From: <'+from+'>',
-        'To: <'+to+'>',
+        'From: <' + from + '>',
+        'To: <' + to + '>',
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',
         `Subject: ${utf8Subject}`,
@@ -106,7 +122,7 @@ async function sendEmail(auth, from, to, message_in, subject) {
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
-        //creating the google api object with auth being the authetication client
+    //creating the google api object with auth being the authetication client
     const gmail = google.gmail({ version: 'v1', auth });
     const res = await gmail.users.messages.send({
         userId: 'me',
@@ -117,3 +133,25 @@ async function sendEmail(auth, from, to, message_in, subject) {
     console.log(res.data);
     return res.data;
 }
+
+async function GetEmails() {
+    // Load client secrets from a local file.
+    var credentials = fs.readFileSync('credentials.json', (err, content) => {
+        // Authorize a client with credentials, then call the Gmail API. 
+    });
+    var ret = await authorize(JSON.parse(credentials), listEmail);
+    return ret;
+}
+
+async function SendEmail(from, to, message, subject) {
+    // Load client secrets from a local file.
+    var credentials = fs.readFileSync('credentials.json', (err, content) => {
+        // Authorize a client with credentials, then call the Gmail API. 
+    });
+    authorize(JSON.parse(credentials), function (auth) { sendEmailInsideFun(auth, from, to, message, subject); });
+}
+let emails = GetEmails().then(function (result){
+    console.log(result);
+}).then(function (result){
+    console.log(result);
+});
