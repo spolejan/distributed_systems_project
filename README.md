@@ -1,2 +1,2 @@
-# distributed_systems_project
-Prototype of distributed approach to Message signing
+# Prototype of distributed digital signature using Euthereum blockchain
+
